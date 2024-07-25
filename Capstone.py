@@ -1,4 +1,6 @@
 import os
+import openpyxl
+from openpyxl import Workbook
 
 def get_folder_info(directory):
     folder_info = []
@@ -28,28 +30,17 @@ def get_folder_info(directory):
     
     return folder_info
 
-def print_folder_info(folder_info):
+def save_folder_info_to_excel(folder_info, output_file):
     headers = ["Folder Name", "Total Files", "Total Size (bytes)", "File Name", "File Size (bytes)", "File Path"]
-    # Calculate column widths
-    col_widths = [len(header) for header in headers]
     
-    for folder in folder_info:
-        for file in folder['files']:
-            col_widths[0] = max(col_widths[0], len(folder['folder_name']))
-            col_widths[1] = max(col_widths[1], len(str(folder['total_files'])))
-            col_widths[2] = max(col_widths[2], len(str(folder['total_size'])))
-            col_widths[3] = max(col_widths[3], len(file['file_name']))
-            col_widths[4] = max(col_widths[4], len(str(file['file_size'])))
-            col_widths[5] = max(col_widths[5], len(file['file_path']))
-
-    def format_row(row):
-        return " | ".join(f"{str(val).ljust(col_widths[i])}" for i, val in enumerate(row))
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Folder Info"
     
-    # Print header
-    print(format_row(headers))
-    print("-+-".join('-' * width for width in col_widths))
+    # Write headers
+    ws.append(headers)
     
-    # Print rows
+    # Write data rows
     for folder in folder_info:
         for file in folder['files']:
             row = [
@@ -60,10 +51,26 @@ def print_folder_info(folder_info):
                 file['file_size'],
                 file['file_path']
             ]
-            print(format_row(row))
+            ws.append(row)
+    
+    # Auto-size columns
+    for col in ws.columns:
+        max_length = 0
+        column = col[0].column_letter
+        for cell in col:
+            try:
+                if len(str(cell.value)) > max_length:
+                    max_length = len(cell.value)
+            except:
+                pass
+        adjusted_width = (max_length + 2)
+        ws.column_dimensions[column].width = adjusted_width
+    
+    wb.save(output_file)
 
 if __name__ == "__main__":
     directory = input("Enter the directory path: ")
+    output_file = "folder_info.xlsx"
     folder_info = get_folder_info(directory)
-    print_folder_info(folder_info)
-    
+    save_folder_info_to_excel(folder_info, output_file)
+    print(f"Folder information saved to {output_file}")
