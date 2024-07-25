@@ -1,8 +1,6 @@
 import os
 import pandas as pd
 import stat
-import pwd
-import grp
 
 def get_file_permissions(mode):
     """Convert file mode to a human-readable format."""
@@ -44,8 +42,7 @@ def get_folder_info(directory):
                 'file_name': None,
                 'file_size': None,
                 'file_path': None,
-                'file_permissions': None,
-                'file_owner': None
+                'file_permissions': None
             })
         else:
             for f in files:
@@ -53,7 +50,6 @@ def get_folder_info(directory):
                 file_size = os.path.getsize(file_path)
                 file_stat = os.stat(file_path)
                 file_permissions = get_file_permissions(file_stat.st_mode)
-                file_owner = f"{pwd.getpwuid(file_stat.st_uid).pw_name}:{grp.getgrgid(file_stat.st_gid).gr_name}"
                 folder_info.append({
                     'folder_name': folder_name,
                     'total_files': total_files,
@@ -61,8 +57,7 @@ def get_folder_info(directory):
                     'file_name': f,
                     'file_size': file_size,
                     'file_path': file_path,
-                    'file_permissions': file_permissions,
-                    'file_owner': file_owner
+                    'file_permissions': file_permissions
                 })
     
     return folder_info
