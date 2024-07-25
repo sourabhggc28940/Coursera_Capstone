@@ -3,28 +3,35 @@ import pandas as pd
 
 def get_folder_info(directory):
     folder_info = []
-    
+
+    # Walk through the directory
     for root, dirs, files in os.walk(directory):
-        # Get the folder name (if root is the directory itself, use the directory name)
-        if root == directory:
-            folder_name = os.path.basename(root) or root
-        else:
-            folder_name = os.path.basename(root)
-        
+        folder_name = os.path.basename(root) or root
         total_files = len(files)
         total_size = sum(os.path.getsize(os.path.join(root, f)) for f in files)
         
-        for f in files:
-            file_path = os.path.join(root, f)
-            file_size = os.path.getsize(file_path)
+        # If there are no files, add the folder information with zero files and size
+        if total_files == 0:
             folder_info.append({
                 'folder_name': folder_name,
                 'total_files': total_files,
                 'total_size': total_size,
-                'file_name': f,
-                'file_size': file_size,
-                'file_path': file_path
+                'file_name': None,
+                'file_size': None,
+                'file_path': None
             })
+        else:
+            for f in files:
+                file_path = os.path.join(root, f)
+                file_size = os.path.getsize(file_path)
+                folder_info.append({
+                    'folder_name': folder_name,
+                    'total_files': total_files,
+                    'total_size': total_size,
+                    'file_name': f,
+                    'file_size': file_size,
+                    'file_path': file_path
+                })
     
     return folder_info
 
