@@ -1,5 +1,30 @@
 import os
 import pandas as pd
+import stat
+import pwd
+import grp
+
+def get_file_permissions(mode):
+    """Convert file mode to a human-readable format."""
+    permissions = ['-'] * 10
+    if stat.S_ISDIR(mode):
+        permissions[0] = 'd'
+    elif stat.S_ISLNK(mode):
+        permissions[0] = 'l'
+    elif stat.S_ISREG(mode):
+        permissions[0] = '-'
+        
+    permissions[1] = 'r' if mode & stat.S_IRUSR else '-'
+    permissions[2] = 'w' if mode & stat.S_IWUSR else '-'
+    permissions[3] = 'x' if mode & stat.S_IXUSR else '-'
+    permissions[4] = 'r' if mode & stat.S_IRGRP else '-'
+    permissions[5] = 'w' if mode & stat.S_IWGRP else '-'
+    permissions[6] = 'x' if mode & stat.S_IXGRP else '-'
+    permissions[7] = 'r' if mode & stat.S_IROTH else '-'
+    permissions[8] = 'w' if mode & stat.S_IWOTH else '-'
+    permissions[9] = 'x' if mode & stat.S_IXOTH else '-'
+    
+    return ''.join(permissions)
 
 def get_folder_info(directory):
     folder_info = []
@@ -18,19 +43,26 @@ def get_folder_info(directory):
                 'total_size': total_size,
                 'file_name': None,
                 'file_size': None,
-                'file_path': None
+                'file_path': None,
+                'file_permissions': None,
+                'file_owner': None
             })
         else:
             for f in files:
                 file_path = os.path.join(root, f)
                 file_size = os.path.getsize(file_path)
+                file_stat = os.stat(file_path)
+                file_permissions = get_file_permissions(file_stat.st_mode)
+                file_owner = f"{pwd.getpwuid(file_stat.st_uid).pw_name}:{grp.getgrgid(file_stat.st_gid).gr_name}"
                 folder_info.append({
                     'folder_name': folder_name,
                     'total_files': total_files,
                     'total_size': total_size,
                     'file_name': f,
                     'file_size': file_size,
-                    'file_path': file_path
+                    'file_path': file_path,
+                    'file_permissions': file_permissions,
+                    'file_owner': file_owner
                 })
     
     return folder_info
