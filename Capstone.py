@@ -4,11 +4,12 @@ def get_folder_info(directory):
     folder_info = []
     
     for root, dirs, files in os.walk(directory):
-        # Skip the root directory itself, we only want subdirectories
+        # Get the folder name (if root is the directory itself, use the directory name)
         if root == directory:
-            continue
+            folder_name = os.path.basename(root) or root
+        else:
+            folder_name = os.path.basename(root)
         
-        folder_name = os.path.basename(root)
         total_files = len(files)
         total_size = sum(os.path.getsize(os.path.join(root, f)) for f in files)
         
@@ -28,18 +29,41 @@ def get_folder_info(directory):
     return folder_info
 
 def print_folder_info(folder_info):
+    headers = ["Folder Name", "Total Files", "Total Size (bytes)", "File Name", "File Size (bytes)", "File Path"]
+    # Calculate column widths
+    col_widths = [len(header) for header in headers]
+    
     for folder in folder_info:
-        print(f"Folder Name: {folder['folder_name']}")
-        print(f"Total Files: {folder['total_files']}")
-        print(f"Total Size: {folder['total_size']} bytes")
-        print("Files:")
         for file in folder['files']:
-            print(f"  File Name: {file['file_name']}")
-            print(f"  File Size: {file['file_size']} bytes")
-            print(f"  File Path: {file['file_path']}")
-        print()
+            col_widths[0] = max(col_widths[0], len(folder['folder_name']))
+            col_widths[1] = max(col_widths[1], len(str(folder['total_files'])))
+            col_widths[2] = max(col_widths[2], len(str(folder['total_size'])))
+            col_widths[3] = max(col_widths[3], len(file['file_name']))
+            col_widths[4] = max(col_widths[4], len(str(file['file_size'])))
+            col_widths[5] = max(col_widths[5], len(file['file_path']))
+
+    def format_row(row):
+        return " | ".join(f"{str(val).ljust(col_widths[i])}" for i, val in enumerate(row))
+    
+    # Print header
+    print(format_row(headers))
+    print("-+-".join('-' * width for width in col_widths))
+    
+    # Print rows
+    for folder in folder_info:
+        for file in folder['files']:
+            row = [
+                folder['folder_name'],
+                folder['total_files'],
+                folder['total_size'],
+                file['file_name'],
+                file['file_size'],
+                file['file_path']
+            ]
+            print(format_row(row))
 
 if __name__ == "__main__":
     directory = input("Enter the directory path: ")
     folder_info = get_folder_info(directory)
     print_folder_info(folder_info)
+    
