@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 import stat
+import hashlib
 
 def get_file_permissions(mode):
     """Convert file mode to a human-readable format."""
@@ -24,6 +25,14 @@ def get_file_permissions(mode):
     
     return ''.join(permissions)
 
+def get_file_checksum(file_path):
+    """Calculate SHA-256 checksum of a file."""
+    sha256_hash = hashlib.sha256()
+    with open(file_path, "rb") as f:
+        for byte_block in iter(lambda: f.read(4096), b""):
+            sha256_hash.update(byte_block)
+    return sha256_hash.hexdigest()
+
 def get_folder_info(directory):
     folder_info = []
 
@@ -42,7 +51,8 @@ def get_folder_info(directory):
                 'file_name': None,
                 'file_size': None,
                 'file_path': None,
-                'file_permissions': None
+                'file_permissions': None,
+                'file_checksum': None
             })
         else:
             for f in files:
@@ -50,6 +60,7 @@ def get_folder_info(directory):
                 file_size = os.path.getsize(file_path)
                 file_stat = os.stat(file_path)
                 file_permissions = get_file_permissions(file_stat.st_mode)
+                file_checksum = get_file_checksum(file_path)
                 folder_info.append({
                     'folder_name': folder_name,
                     'total_files': total_files,
@@ -57,7 +68,8 @@ def get_folder_info(directory):
                     'file_name': f,
                     'file_size': file_size,
                     'file_path': file_path,
-                    'file_permissions': file_permissions
+                    'file_permissions': file_permissions,
+                    'file_checksum': file_checksum
                 })
     
     return folder_info
