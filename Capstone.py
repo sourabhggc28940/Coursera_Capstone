@@ -4,11 +4,11 @@ import stat
 import hashlib
 
 def get_file_permissions(file_path):
-    """Get file permissions as a simple string (e.g., rwxr-xr-x)."""
+    """Get file permissions as a string encapsulated within single quotes."""
     try:
         mode = os.stat(file_path).st_mode
         permissions = stat.filemode(mode)
-        return permissions
+        return f"'{permissions}'"  # Enclose permissions in single quotes
     except Exception as e:
         return f"Error: {e}"
 
