@@ -28,10 +28,13 @@ def get_file_permissions(mode):
 def get_file_checksum(file_path):
     """Calculate SHA-256 checksum of a file."""
     sha256_hash = hashlib.sha256()
-    with open(file_path, "rb") as f:
-        for byte_block in iter(lambda: f.read(4096), b""):
-            sha256_hash.update(byte_block)
-    return sha256_hash.hexdigest()
+    try:
+        with open(file_path, "rb") as f:
+            for byte_block in iter(lambda: f.read(4096), b""):
+                sha256_hash.update(byte_block)
+        return sha256_hash.hexdigest()
+    except Exception as e:
+        return f"Error: {e}"
 
 def get_folder_info(directory):
     folder_info = []
@@ -58,8 +61,11 @@ def get_folder_info(directory):
             for f in files:
                 file_path = os.path.join(root, f)
                 file_size = os.path.getsize(file_path)
-                file_stat = os.stat(file_path)
-                file_permissions = get_file_permissions(file_stat.st_mode)
+                try:
+                    file_stat = os.stat(file_path)
+                    file_permissions = get_file_permissions(file_stat.st_mode)
+                except Exception as e:
+                    file_permissions = f"Error: {e}"
                 file_checksum = get_file_checksum(file_path)
                 folder_info.append({
                     'folder_name': folder_name,
