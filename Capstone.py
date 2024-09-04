@@ -5,25 +5,20 @@ import hashlib
 
 def get_file_permissions(mode):
     """Convert file mode to a human-readable format."""
-    permissions = ['-'] * 10
-    if stat.S_ISDIR(mode):
-        permissions[0] = 'd'
-    elif stat.S_ISLNK(mode):
-        permissions[0] = 'l'
-    elif stat.S_ISREG(mode):
-        permissions[0] = '-'
-        
-    permissions[1] = 'r' if mode & stat.S_IRUSR else '-'
-    permissions[2] = 'w' if mode & stat.S_IWUSR else '-'
-    permissions[3] = 'x' if mode & stat.S_IXUSR else '-'
-    permissions[4] = 'r' if mode & stat.S_IRGRP else '-'
-    permissions[5] = 'w' if mode & stat.S_IWGRP else '-'
-    permissions[6] = 'x' if mode & stat.S_IXGRP else '-'
-    permissions[7] = 'r' if mode & stat.S_IROTH else '-'
-    permissions[8] = 'w' if mode & stat.S_IWOTH else '-'
-    permissions[9] = 'x' if mode & stat.S_IXOTH else '-'
+    is_dir = 'd' if stat.S_ISDIR(mode) else '-'
+    perm_u = 'r' if mode & stat.S_IRUSR else '-'
+    perm_u += 'w' if mode & stat.S_IWUSR else '-'
+    perm_u += 'x' if mode & stat.S_IXUSR else '-'
     
-    return ''.join(permissions)
+    perm_g = 'r' if mode & stat.S_IRGRP else '-'
+    perm_g += 'w' if mode & stat.S_IWGRP else '-'
+    perm_g += 'x' if mode & stat.S_IXGRP else '-'
+    
+    perm_o = 'r' if mode & stat.S_IROTH else '-'
+    perm_o += 'w' if mode & stat.S_IWOTH else '-'
+    perm_o += 'x' if mode & stat.S_IXOTH else '-'
+    
+    return f"{is_dir}{perm_u}{perm_g}{perm_o}"
 
 def get_file_checksum(file_path):
     """Calculate SHA-256 checksum of a file."""
@@ -85,7 +80,7 @@ def save_folder_info_to_csv(folder_info, output_file):
     headers = ['folder_name', 'total_files', 'total_size', 'file_name', 'file_size', 'file_path', 'file_permissions', 'file_checksum']
     
     # Open the CSV file for writing
-    with open(output_file, mode='w', newline='') as file:
+    with open(output_file, mode='w', newline='', encoding='utf-8') as file:
         writer = csv.DictWriter(file, fieldnames=headers)
         
         # Write the headers
