@@ -3,22 +3,14 @@ import csv
 import stat
 import hashlib
 
-def get_file_permissions(mode):
-    """Convert file mode to a human-readable format."""
-    is_dir = 'd' if stat.S_ISDIR(mode) else '-'
-    perm_u = 'r' if mode & stat.S_IRUSR else '-'
-    perm_u += 'w' if mode & stat.S_IWUSR else '-'
-    perm_u += 'x' if mode & stat.S_IXUSR else '-'
-    
-    perm_g = 'r' if mode & stat.S_IRGRP else '-'
-    perm_g += 'w' if mode & stat.S_IWGRP else '-'
-    perm_g += 'x' if mode & stat.S_IXGRP else '-'
-    
-    perm_o = 'r' if mode & stat.S_IROTH else '-'
-    perm_o += 'w' if mode & stat.S_IWOTH else '-'
-    perm_o += 'x' if mode & stat.S_IXOTH else '-'
-    
-    return f"{is_dir}{perm_u}{perm_g}{perm_o}"
+def get_file_permissions(file_path):
+    """Get file permissions as a simple string (e.g., rwxr-xr-x)."""
+    try:
+        mode = os.stat(file_path).st_mode
+        permissions = stat.filemode(mode)
+        return permissions
+    except Exception as e:
+        return f"Error: {e}"
 
 def get_file_checksum(file_path):
     """Calculate SHA-256 checksum of a file."""
@@ -56,11 +48,7 @@ def get_folder_info(directory):
             for f in files:
                 file_path = os.path.join(root, f)
                 file_size = os.path.getsize(file_path)
-                try:
-                    file_stat = os.stat(file_path)
-                    file_permissions = get_file_permissions(file_stat.st_mode)
-                except Exception as e:
-                    file_permissions = f"Error: {e}"
+                file_permissions = get_file_permissions(file_path)
                 file_checksum = get_file_checksum(file_path)
                 folder_info.append({
                     'folder_name': folder_name,
