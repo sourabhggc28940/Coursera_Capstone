@@ -24,28 +24,30 @@ def get_file_permissions(file_path):
         return f"Error: {e}"
 
 def get_file_checksum(file_path):
-    """Calculate SHA-256 checksum of a file."""
-    sha256_hash = hashlib.sha256()
+    
+    md5_hash = hashlib.md5()
     try:
         if os.path.islink(file_path) and not os.path.exists(file_path):
             return "broken_symlink"
         
         with open(file_path, "rb") as f:
             for byte_block in iter(lambda: f.read(4096), b""):
-                sha256_hash.update(byte_block)
-        return sha256_hash.hexdigest()
+                md5_hash.update(byte_block)
+        return md5_hash.hexdigest()
     except Exception as e:
         return f"Error: {e}"
 
-def get_folder_info(directory):
+def get_folder_info(directory,folder_to_skip):
     folder_info = []
 
     # Walk through the directory
     for root, dirs, files in os.walk(directory):
+        if folder_to_skip in dirs:
+            dirs.remove(folder_to_skip)
         folder_name = os.path.basename(root) or root
         total_files = len(files)
         total_size = sum(os.path.getsize(os.path.join(root, f)) for f in files if os.path.exists(os.path.join(root, f)))
-        
+        print(folder_name)
         # If there are no files, add the folder information with zero files and size
         if total_files == 0:
             folder_info.append({
@@ -57,7 +59,8 @@ def get_folder_info(directory):
                 'file_path': None,
                 'file_permissions': None,
                 'file_checksum': None
-            })
+            })  
+      
         else:
             for f in files:
                 file_path = os.path.join(root, f)
@@ -75,6 +78,7 @@ def get_folder_info(directory):
                         'file_permissions': file_permissions,
                         'file_checksum': file_checksum
                     })
+        print(folder_info)            
     
     return folder_info
 
@@ -95,7 +99,8 @@ def save_folder_info_to_csv(folder_info, output_file):
 
 if __name__ == "__main__":
     directory = input("Enter the directory path: ")
+    folder_to_skip = input("enter the folder name you want to skip: ")
     output_file = "folder_info.csv"
-    folder_info = get_folder_info(directory)
+    folder_info = get_folder_info(directory,folder_to_skip)
     save_folder_info_to_csv(folder_info, output_file)
     print(f"Folder information saved to {output_file}")
