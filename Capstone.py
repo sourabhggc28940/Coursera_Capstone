@@ -1,3 +1,4 @@
+
 import os
 import csv
 import stat
@@ -24,7 +25,6 @@ def get_file_permissions(file_path):
         return f"Error: {e}"
 
 def get_file_checksum(file_path):
-    
     md5_hash = hashlib.md5()
     try:
         if os.path.islink(file_path) and not os.path.exists(file_path):
@@ -37,17 +37,21 @@ def get_file_checksum(file_path):
     except Exception as e:
         return f"Error: {e}"
 
-def get_folder_info(directory,folder_to_skip):
+def get_folder_info(directory, folders_to_skip=None):
     folder_info = []
+
+    # Convert folders_to_skip to a list if it's provided, otherwise, use an empty list
+    folders_to_skip = folders_to_skip or []
 
     # Walk through the directory
     for root, dirs, files in os.walk(directory):
-        if folder_to_skip in dirs:
-            dirs.remove(folder_to_skip)
+        # Skip folders that match any path in the folders_to_skip list
+        dirs[:] = [d for d in dirs if os.path.join(root, d) not in folders_to_skip]
+
         folder_name = os.path.basename(root) or root
         total_files = len(files)
         total_size = sum(os.path.getsize(os.path.join(root, f)) for f in files if os.path.exists(os.path.join(root, f)))
-        print(folder_name)
+
         # If there are no files, add the folder information with zero files and size
         if total_files == 0:
             folder_info.append({
@@ -59,8 +63,7 @@ def get_folder_info(directory,folder_to_skip):
                 'file_path': None,
                 'file_permissions': None,
                 'file_checksum': None
-            })  
-      
+            })
         else:
             for f in files:
                 file_path = os.path.join(root, f)
@@ -78,8 +81,7 @@ def get_folder_info(directory,folder_to_skip):
                         'file_permissions': file_permissions,
                         'file_checksum': file_checksum
                     })
-        print(folder_info)            
-    
+
     return folder_info
 
 def save_folder_info_to_csv(folder_info, output_file):
@@ -99,8 +101,14 @@ def save_folder_info_to_csv(folder_info, output_file):
 
 if __name__ == "__main__":
     directory = input("Enter the directory path: ")
-    folder_to_skip = input("enter the folder name you want to skip: ")
+    
+    # Input multiple folder paths to skip, comma-separated, or leave blank to skip none
+    folders_to_skip_input = input("Enter folder paths to skip (comma-separated, or leave blank to skip none): ")
+    
+    # Convert input string to a list of folder paths if provided
+    folders_to_skip = [folder.strip() for folder in folders_to_skip_input.split(',')] if folders_to_skip_input else None
+    
     output_file = "folder_info.csv"
-    folder_info = get_folder_info(directory,folder_to_skip)
+    folder_info = get_folder_info(directory, folders_to_skip)
     save_folder_info_to_csv(folder_info, output_file)
     print(f"Folder information saved to {output_file}")
